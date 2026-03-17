@@ -9,7 +9,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "First Call Free | x402 + AgentKit (World ID) Example",
+  title: "x402 + World ID | AgentKit Example",
   description:
     "A payment-gated API using x402 and AgentKit where human-backed agents get their first calls free. Sybil-resistant via World ID proof-of-personhood.",
   metadataBase: new URL("https://x402-world-agentkit.vercel.app"),
@@ -37,24 +37,24 @@ export const metadata: Metadata = {
   },
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "First Call Free | x402 + AgentKit (World ID) Example",
+    title: "x402 + World ID | x402 + AgentKit (World ID) Example",
     description:
       "A payment-gated API using x402 and AgentKit where human-backed agents get their first calls free. Sybil-resistant via World ID.",
     url: "https://x402-world-agentkit.vercel.app",
-    siteName: "First Call Free",
+    siteName: "x402 + World ID",
     images: [
       {
         url: "https://x402-world-agentkit.vercel.app/og.png",
         width: 1200,
         height: 630,
-        alt: "First Call Free - x402 + AgentKit (World ID) Example",
+        alt: "x402 + World ID - x402 + AgentKit (World ID) Example",
       },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "First Call Free | x402 + AgentKit (World ID) Example",
+    title: "x402 + World ID | x402 + AgentKit (World ID) Example",
     description:
       "A payment-gated API using x402 and AgentKit where human-backed agents get their first calls free. Sybil-resistant via World ID.",
     images: ["https://x402-world-agentkit.vercel.app/og.png"],
