@@ -463,18 +463,18 @@
     <tbody>
       <tr>
         <td>Payment methods</td>
-        <td>Blockchain only &mdash; USDC on EVM chains (Base, Ethereum, Polygon, Arbitrum, Optimism, Avalanche) + Solana</td>
-        <td>Multi-rail: stablecoins (Tempo), cards (Stripe), Bitcoin (Lightning), card network tokens (Visa/Mastercard), extensible</td>
+        <td>Built-in: USDC on EVM chains (Base, Ethereum, Polygon, Arbitrum, Optimism, Avalanche) + Solana. Extensible via custom schemes (e.g., fiat via a &ldquo;cash&rdquo; scheme)</td>
+        <td>Built-in: stablecoins (Tempo), cards (Stripe), Bitcoin (Lightning), card network tokens (Visa/Mastercard). Extensible via <code>Method.from()</code></td>
       </tr>
       <tr>
         <td>Extensibility</td>
-        <td>Fixed set of scheme+network pairs</td>
-        <td>Anyone can define new payment methods permissionlessly &mdash; no foundation approval</td>
+        <td>Extensible via custom <code>SchemeNetworkClient</code> / <code>SchemeNetworkFacilitator</code> / <code>SchemeNetworkServer</code> interfaces</td>
+        <td>Extensible via <code>Method.from()</code> + <code>toClient()</code> / <code>toServer()</code> with typed Zod schemas</td>
       </tr>
       <tr>
         <td>Verification model</td>
-        <td>Facilitator-based &mdash; server forwards payment to a facilitator (<code>x402.org/facilitator</code>) that verifies and settles on-chain</td>
-        <td>Direct &mdash; server verifies payment itself using method-specific logic</td>
+        <td>Separates verify and settle. Facilitator is <strong>optional</strong> &mdash; can self-host or handle verify+settle yourself. Facilitator covers gas when used.</td>
+        <td>Direct &mdash; server verifies payment itself using method-specific logic in <code>verify()</code>. No verify/settle separation.</td>
       </tr>
       <tr>
         <td>Session/streaming</td>
@@ -553,8 +553,8 @@
       </tr>
       <tr>
         <td>Trust model</td>
-        <td>Facilitator cannot move funds without valid client signature (EIP-3009)</td>
-        <td>Direct verification &mdash; no intermediary needed for most methods</td>
+        <td>Client always signs off-chain (EIP-3009). Facilitator or server broadcasts &mdash; facilitator cannot move funds without valid signature</td>
+        <td>Method-dependent. Push: client broadcasts directly. Pull: server broadcasts with client signature. Stripe/Card: API-based.</td>
       </tr>
       <tr>
         <td>Adoption</td>
@@ -570,24 +570,26 @@
     <div class="unique-card x402">
       <h4>Only in x402</h4>
       <ul>
-        <li>Facilitator model (offloads blockchain interaction to a shared service &mdash; simpler server-side setup)</li>
+        <li>Facilitator model (optional &mdash; offloads verify + settle + gas to a shared service for simpler setup)</li>
+        <li>Separate verify/settle steps (verify before delivering, settle after &mdash; server never moves funds on unpaid work)</li>
+        <li>Client never broadcasts &mdash; always signs off-chain (EIP-3009), facilitator or server handles broadcast + gas</li>
         <li>Bazaar extension (service discovery and paid endpoint catalogs)</li>
         <li>SIWX extension (wallet-based auth to exempt returning users from payment)</li>
         <li>Go SDK with Gin middleware</li>
         <li>Browser paywall component for human-facing UIs</li>
-        <li>Multi-chain EVM + Solana with broad L1/L2 coverage</li>
+        <li>Multi-chain EVM + Solana with broad L1/L2 coverage out of the box</li>
       </ul>
     </div>
     <div class="unique-card mpp">
       <h4>Only in MPP</h4>
       <ul>
-        <li>Payment-method agnostic (cards, Bitcoin Lightning, stablecoins, custom rails)</li>
+        <li>First-class built-in support for cards (Stripe), Bitcoin (Lightning), card network tokens (Visa) alongside crypto</li>
+        <li>Push mode &mdash; client can broadcast + pay gas directly, server is read-only (no gas cost for server)</li>
         <li>Session intent with real payment channels (off-chain vouchers, batch settlement)</li>
         <li>SSE streaming payments with mid-stream voucher renewal</li>
-        <li>Permissionless extensibility (anyone can author new payment methods)</li>
+        <li>Typed schemas via Zod for custom payment methods</li>
         <li>IETF standards track</li>
         <li>Rust SDK</li>
-        <li>No facilitator dependency</li>
       </ul>
     </div>
   </div>
@@ -601,9 +603,9 @@
     <div class="choose-card mpp">
       <h4>Choose MPP if:</h4>
       <ul>
-        <li>You need to accept non-crypto payments (cards, wallets) alongside crypto</li>
+        <li>You want first-class built-in support for cards (Stripe, Visa) alongside crypto without writing custom schemes</li>
         <li>You&rsquo;re building metered/streaming services (LLM APIs, token streaming) where session-based billing matters</li>
-        <li>You want to support multiple payment rails and let clients choose</li>
+        <li>You want the client to be able to broadcast + pay gas directly (push mode)</li>
         <li>You care about IETF standardization</li>
         <li>You need Rust support</li>
       </ul>
@@ -612,29 +614,34 @@
       <h4>Choose x402 if:</h4>
       <ul>
         <li>You&rsquo;re in the Coinbase/CDP ecosystem and want the simplest integration path</li>
-        <li>You only need USDC payments on EVM or Solana</li>
-        <li>You want the facilitator model to avoid handling blockchain interactions yourself</li>
-        <li>You need Go support</li>
-        <li>You want service discovery (Bazaar) or browser paywall components</li>
-        <li>You value the existing adoption and ecosystem</li>
+        <li>You want the facilitator model to offload verify + settle + gas sponsorship to a shared service</li>
+        <li>You want the verify/settle separation (verify before delivering, settle after)</li>
+        <li>You need broad EVM L1/L2 + Solana support out of the box</li>
+        <li>You need Go support, Bazaar service discovery, or browser paywall components</li>
+        <li>You value the existing adoption and ecosystem (75M+ transactions)</li>
       </ul>
     </div>
   </div>
 
   <div class="bottom-text">
     <p>
-      <strong>The big picture:</strong> MPP is more ambitious in scope &mdash; it&rsquo;s trying to be the universal payment layer for HTTP,
-      covering everything from credit cards to Bitcoin to stablecoins. x402 is more focused &mdash; it does crypto payments on EVM and Solana
-      really well with a clean facilitator abstraction.
+      <strong>The big picture:</strong> Both protocols are extensible and both can support non-blockchain payment methods via custom schemes/methods.
+      The difference is in what they ship built-in, and in their architectural patterns.
     </p>
     <p>
-      MPP&rsquo;s session intent and streaming support are genuine differentiators if you&rsquo;re building high-frequency metered services.
-      x402&rsquo;s facilitator model and broader chain support are genuine differentiators if you&rsquo;re building in the crypto ecosystem.
+      MPP ships cards (Stripe, Visa), Bitcoin (Lightning), and stablecoins (Tempo) as first-class built-in methods. It also has push mode
+      (client broadcasts + pays gas, server is read-only) and session intents for streaming/metered billing. These are genuine differentiators
+      for multi-rail and high-frequency use cases.
+    </p>
+    <p>
+      x402 ships broad EVM L1/L2 + Solana support out of the box, with the optional facilitator model that offloads verify + settle + gas
+      sponsorship to a shared service. The verify/settle separation and the fact that the client never broadcasts are genuine architectural
+      differentiators for crypto-native use cases where you want clean separation of concerns.
     </p>
     <p>
       They&rsquo;re solving the same fundamental problem (HTTP 402 for machine payments) but making different tradeoffs.
-      MPP optimizes for breadth of payment methods and streaming performance.
-      x402 optimizes for simplicity of integration and breadth of blockchain support.
+      MPP optimizes for breadth of built-in payment rails and streaming performance.
+      x402 optimizes for EVM/Solana depth, facilitator convenience, and breadth of blockchain support.
     </p>
   </div>
 
@@ -655,21 +662,27 @@
   <p>MPP uses the standard HTTP authentication framework. x402 uses its own custom headers.</p>
 
   <h3>Verification: Facilitator vs Direct</h3>
-  <p>This is the biggest architectural difference.</p>
+  <p>This is a key architectural difference &mdash; though often mischaracterized.</p>
   <p>
-    In <strong>x402</strong>, the server doesn&rsquo;t verify payment itself. It forwards the signed payload to a <strong>facilitator</strong>
-    (Coinbase hosts one at <code>x402.org/facilitator</code>), which does two separate steps:
+    In <strong>x402</strong>, verification and settlement are <strong>separate steps</strong>. The server (or a facilitator it delegates to) does:
   </p>
   <ul>
-    <li><code>POST /verify</code> &mdash; validates the signature, checks balance, simulates the tx</li>
-    <li><code>POST /settle</code> &mdash; executes the payment on-chain after the server does its work</li>
+    <li><code>verify</code> &mdash; validates the signature, checks balance, simulates the tx. Called <em>before</em> delivering the resource.</li>
+    <li><code>settle</code> &mdash; broadcasts the tx on-chain and moves the funds. Called <em>after</em> delivering the resource.</li>
   </ul>
-  <p>In <strong>MPP</strong>, the server verifies payment <strong>directly</strong> using method-specific logic &mdash; no intermediary needed.</p>
+  <p>
+    The <strong>facilitator is optional</strong>. Coinbase hosts one at <code>x402.org/facilitator</code> that handles both steps and covers gas,
+    but you can self-host or implement verify+settle yourself. The facilitator is a convenience for gas sponsorship and offloading chain interaction,
+    not a protocol requirement.
+  </p>
+  <p>In <strong>MPP</strong>, the server calls a single <code>verify()</code> function directly using method-specific logic. There is no separate settle step
+  &mdash; depending on the mode, settlement happened before verification (push: client already broadcasted) or during verification (pull: server broadcasts in verify).</p>
 
   <h3>When Does Money Actually Move?</h3>
   <p>
-    In <strong>x402</strong>: The client signs an authorization (EIP-3009 <code>transferWithAuthorization</code>), but money doesn&rsquo;t move
-    until the facilitator calls <code>POST /settle</code> <em>after</em> the server has done its work. It&rsquo;s always a sign-then-settle model.
+    In <strong>x402</strong>: The client signs an off-chain authorization (EIP-3009 <code>transferWithAuthorization</code>). The client <strong>never
+    broadcasts</strong>. Money moves when whoever handles settlement (facilitator or server) calls <code>settle</code> to broadcast the tx on-chain.
+    This typically happens <em>after</em> the server has verified and delivered the resource. The entity that broadcasts pays gas.
   </p>
   <p>In <strong>MPP</strong> it depends on the method:</p>
   <ul>
@@ -704,8 +717,10 @@
 
   <h2 id="payment-methods">Payment Methods</h2>
   <p>
-    MPP is <strong>payment-method agnostic</strong>. The core protocol doesn&rsquo;t care how money moves &mdash;
-    it only standardizes the challenge/credential/receipt exchange. Anyone can define a new payment method without needing approval from any foundation.
+    Both MPP and x402 are extensible &mdash; you can define custom payment methods in both.
+    The difference is that MPP ships more built-in non-blockchain methods (Stripe, Lightning, Visa Card) as first-class SDK methods,
+    while x402 ships broader blockchain coverage (EVM L1/L2 + Solana) out of the box. x402 supports fiat via custom schemes
+    (e.g., a &ldquo;cash&rdquo; scheme), but it requires implementing the <code>SchemeNetworkClient</code> / <code>SchemeNetworkFacilitator</code> / <code>SchemeNetworkServer</code> interfaces yourself.
   </p>
 
   <h3>Built-in Methods</h3>
