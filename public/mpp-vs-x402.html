@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPP: The Machine Payments Protocol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: #18181b;
+      --surface-raised: #1e1e22;
+      --border: #27272a;
+      --border-subtle: #1f1f23;
+      --text: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-tertiary: #71717a;
+      --accent: #fbbf24;
+      --accent-soft: rgba(251, 191, 36, 0.1);
+      --accent-border: rgba(251, 191, 36, 0.25);
+      --teal: #5eead4;
+      --teal-soft: rgba(94, 234, 212, 0.1);
+      --teal-border: rgba(94, 234, 212, 0.25);
+      --amber: #fbbf24;
+      --amber-soft: rgba(251, 191, 36, 0.1);
+      --amber-border: rgba(251, 191, 36, 0.25);
+      --code-bg: #131316;
+      --table-row-alt: #0f0f12;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 4rem 2rem 6rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    h2 {
+      font-size: 1.55rem;
+      font-weight: 600;
+      margin-top: 3.5rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    a:hover { color: var(--teal); text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+      background: var(--code-bg);
+      padding: 0.15em 0.45em;
+      border-radius: 5px;
+      font-size: 0.85em;
+      color: var(--teal);
+      border: 1px solid var(--border-subtle);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+      font-size: 0.84rem;
+      line-height: 1.65;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-tertiary);
+      border: none;
+    }
+
+    strong { color: var(--text); font-weight: 600; }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: var(--border);
+      margin: 3rem 0;
+    }
+
+    ul, ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+    li {
+      margin-bottom: 0.45rem;
+      color: var(--text-secondary);
+    }
+    li strong { color: var(--text); }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-bottom: 1.75rem;
+      font-size: 0.9rem;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    thead th {
+      background: var(--surface-raised);
+      text-align: left;
+      padding: 0.8rem 1rem;
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+    }
+    thead th:not(:last-child) { border-right: 1px solid var(--border-subtle); }
+    tbody td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: top;
+      color: var(--text-secondary);
+    }
+    tbody td:not(:last-child) { border-right: 1px solid var(--border-subtle); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:nth-child(even) { background: var(--table-row-alt); }
+    tbody td:first-child {
+      font-weight: 500;
+      white-space: nowrap;
+      color: var(--text-tertiary);
+      min-width: 140px;
+    }
+
+    .comparison-table td:nth-child(2) { color: var(--text-tertiary); }
+    .comparison-table td:nth-child(3) { color: var(--text-secondary); }
+    .comparison-table td:first-child { color: var(--text); font-weight: 600; }
+
+    .flow-steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin: 1.75rem 0;
+    }
+    .flow-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1.25rem;
+      text-align: center;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .flow-step:hover {
+      border-color: var(--accent-border);
+      transform: translateY(-2px);
+    }
+    .flow-step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      color: var(--bg);
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 0.65rem;
+    }
+    .flow-step-title {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+    .flow-step-subtitle {
+      font-size: 0.83rem;
+      color: var(--text-tertiary);
+    }
+
+    .choose-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin: 1.75rem 0;
+    }
+    .choose-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color 0.2s ease;
+    }
+    .choose-card:hover { border-color: var(--accent-border); }
+    .choose-card h4 {
+      font-size: 1.05rem;
+      margin-bottom: 0.85rem;
+      letter-spacing: -0.01em;
+    }
+    .choose-card ul { padding-left: 1.25rem; }
+    .choose-card li { font-size: 0.9rem; color: var(--text-tertiary); }
+
+    .choose-card.mpp { border-color: var(--accent-border); background: var(--accent-soft); }
+    .choose-card.mpp h4 { color: var(--accent); }
+    .choose-card.mpp:hover { border-color: var(--accent); }
+    .choose-card.x402 { border-color: var(--amber-border); background: var(--amber-soft); }
+    .choose-card.x402 h4 { color: var(--amber); }
+    .choose-card.x402:hover { border-color: var(--amber); }
+
+    .unique-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin: 1.75rem 0;
+    }
+    .unique-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color 0.2s ease;
+    }
+    .unique-card:hover { border-color: var(--accent-border); }
+    .unique-card h4 {
+      font-size: 1rem;
+      margin-bottom: 0.85rem;
+      font-weight: 600;
+    }
+    .unique-card ul { padding-left: 1.25rem; }
+    .unique-card li { font-size: 0.88rem; color: var(--text-tertiary); margin-bottom: 0.35rem; }
+    .unique-card.x402 { border-color: var(--amber-border); background: var(--amber-soft); }
+    .unique-card.x402 h4 { color: var(--amber); }
+    .unique-card.x402:hover { border-color: var(--amber); }
+    .unique-card.mpp { border-color: var(--accent-border); background: var(--accent-soft); }
+    .unique-card.mpp h4 { color: var(--accent); }
+    .unique-card.mpp:hover { border-color: var(--accent); }
+
+    .security-list li {
+      margin-bottom: 0.65rem;
+    }
+
+    .bottom-text {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-top: 1.75rem;
+      color: var(--text-tertiary);
+      font-size: 0.93rem;
+      line-height: 1.85;
+    }
+    .bottom-text p:last-child { margin-bottom: 0; }
+    .bottom-text strong { color: var(--text-secondary); }
+
+    /* Sidebar navigation */
+    .page-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3rem;
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 2rem;
+      align-self: start;
+      max-height: calc(100vh - 4rem);
+      overflow-y: auto;
+      padding-right: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .sidebar-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-tertiary);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 0.4rem 0.75rem;
+      margin-bottom: 0.15rem;
+      font-size: 0.82rem;
+      color: var(--text-tertiary);
+      border-radius: 6px;
+      transition: color 0.15s ease, background 0.15s ease;
+      line-height: 1.45;
+    }
+    .sidebar nav a:hover {
+      color: var(--text);
+      background: var(--surface);
+      text-decoration: none;
+    }
+    .sidebar nav a.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .content {
+      min-width: 0;
+    }
+
+    /* Override body for layout */
+    body {
+      max-width: none;
+      padding: 3rem 2.5rem 6rem;
+    }
+
+    .content h1 { max-width: 920px; }
+    .content h2 { scroll-margin-top: 2rem; }
+
+    @media (max-width: 900px) {
+      .page-layout {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 260px;
+        height: 100vh;
+        max-height: 100vh;
+        background: var(--bg);
+        border-right: 1px solid var(--border);
+        padding: 2rem 1rem;
+        z-index: 100;
+        transition: left 0.25s ease;
+      }
+      .sidebar.open { left: 0; }
+      .menu-toggle {
+        display: flex;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 101;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 1.2rem;
+      }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 99;
+      }
+      .sidebar.open ~ .sidebar-overlay { display: block; }
+      body { padding: 2rem 1.25rem 4rem; }
+      h1 { font-size: 1.9rem; }
+      h2 { font-size: 1.3rem; }
+      .flow-steps { grid-template-columns: 1fr; }
+      .choose-grid, .unique-grid { grid-template-columns: 1fr; }
+      table { font-size: 0.8rem; }
+      thead th, tbody td { padding: 0.5rem 0.65rem; }
+    }
+    @media (min-width: 901px) {
+      .menu-toggle { display: none; }
+      .sidebar-overlay { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">&#9776;</button>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">On this page</div>
+    <nav>
+      <a href="#what-is-mpp">What is MPP?</a>
+      <a href="#comparison">MPP vs x402</a>
+      <a href="#verdict">Is MPP Better?</a>
+      <a href="#how-it-works">How It Works (vs x402)</a>
+      <a href="#payment-methods">Payment Methods</a>
+      <a href="#cards-fiat">Cards / Fiat Support</a>
+      <a href="#intents">Charge vs Session</a>
+      <a href="#sdks">SDKs &amp; Frameworks</a>
+      <a href="#security">Security Model</a>
+      <a href="#discovery">Discovery</a>
+    </nav>
+  </aside>
+  <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
+
+  <main class="content">
+
+  <h1>MPP: The Machine Payments Protocol</h1>
+
+  <h2 id="what-is-mpp">What is MPP?</h2>
+  <p>
+    MPP (Machine Payments Protocol) is an open payment protocol built on HTTP <code>402 Payment Required</code>,
+    designed to let any client &mdash; AI agents, apps, or humans &mdash; pay for services without API keys, OAuth flows, or billing accounts.
+    It was created by <a href="https://github.com/wevm">wevm</a> (the team behind wagmi and viem) and is on the IETF standards track at
+    <a href="https://paymentauth.org">paymentauth.org</a>.
+  </p>
+  <p>
+    The core idea: a server says &ldquo;pay me first&rdquo; via a standard HTTP response, and the client pays and retries.
+    No signup, no accounts, no checkout pages.
+  </p>
+
+  <hr>
+
+  <h2 id="comparison">MPP vs x402: How Do They Compare?</h2>
+  <p>Both protocols use HTTP <code>402 Payment Required</code> to gate resources behind payments. But they differ significantly in scope and design.</p>
+
+  <table class="comparison-table">
+    <thead><tr><th></th><th>x402</th><th>MPP</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Payment methods</td>
+        <td>Blockchain only &mdash; USDC on EVM chains (Base, Ethereum, Polygon, Arbitrum, Optimism, Avalanche) + Solana</td>
+        <td>Multi-rail: stablecoins (Tempo), cards (Stripe), Bitcoin (Lightning), card network tokens (Visa/Mastercard), extensible</td>
+      </tr>
+      <tr>
+        <td>Extensibility</td>
+        <td>Fixed set of scheme+network pairs</td>
+        <td>Anyone can define new payment methods permissionlessly &mdash; no foundation approval</td>
+      </tr>
+      <tr>
+        <td>Verification model</td>
+        <td>Facilitator-based &mdash; server forwards payment to a facilitator (<code>x402.org/facilitator</code>) that verifies and settles on-chain</td>
+        <td>Direct &mdash; server verifies payment itself using method-specific logic</td>
+      </tr>
+      <tr>
+        <td>Session/streaming</td>
+        <td>SIWX extension for wallet-based session auth (not a payment channel). One on-chain tx per request.</td>
+        <td><strong>Session intent</strong> &mdash; deposit once, then use off-chain signed vouchers for many requests (sub-100ms latency, near-zero fees)</td>
+      </tr>
+      <tr>
+        <td>Per-token billing</td>
+        <td>Not natively supported. Planned &ldquo;upto&rdquo; scheme not yet implemented.</td>
+        <td>First-class SSE streaming support &mdash; server emits <code>payment-need-voucher</code> events mid-stream</td>
+      </tr>
+      <tr>
+        <td>Idempotency</td>
+        <td>Basic</td>
+        <td>Built-in <code>Idempotency-Key</code> support, single-use credentials, replay protection via HMAC-bound challenge IDs</td>
+      </tr>
+      <tr>
+        <td>Request body binding</td>
+        <td>No</td>
+        <td>Yes &mdash; RFC 9530 Content-Digest parameter binds the challenge to the request body (prevents tampering)</td>
+      </tr>
+      <tr>
+        <td>Error handling</td>
+        <td>Custom error codes (<code>insufficient_funds</code>, <code>invalid_signature</code>, etc.)</td>
+        <td>RFC 9457 Problem Details with specific error codes (<code>payment-expired</code>, <code>verification-failed</code>, etc.)</td>
+      </tr>
+      <tr>
+        <td>Standards</td>
+        <td>Custom protocol spec</td>
+        <td>IETF standards track (paymentauth.org), uses RFC 9110 HTTP auth scheme</td>
+      </tr>
+      <tr>
+        <td>SDKs</td>
+        <td>TypeScript (<code>@x402/*</code>), Python (<code>x402</code>), Go (<code>coinbase/x402/go</code>)</td>
+        <td>TypeScript (<code>mppx</code>), Python (<code>pympp</code>), Rust (<code>mpp</code>)</td>
+      </tr>
+      <tr>
+        <td>Server frameworks</td>
+        <td>Express, Hono, Next.js, FastAPI, Flask, Gin</td>
+        <td>Next.js, Hono, Elysia, Express, FastAPI (+ Bun, Deno, Cloudflare Workers)</td>
+      </tr>
+      <tr>
+        <td>Client wrappers</td>
+        <td><code>fetch</code>, <code>axios</code></td>
+        <td><code>fetch</code>, <code>httpx</code> (Python), <code>reqwest</code> (Rust)</td>
+      </tr>
+      <tr>
+        <td>MCP integration</td>
+        <td>Yes &mdash; TypeScript, Python, Go</td>
+        <td>Yes &mdash; native JSON-RPC binding with <code>-32042</code> error code for challenges</td>
+      </tr>
+      <tr>
+        <td>Browser paywall</td>
+        <td>Yes (<code>@x402/paywall</code>)</td>
+        <td>No dedicated component</td>
+      </tr>
+      <tr>
+        <td>Service discovery</td>
+        <td>Yes &mdash; Bazaar extension for advertising paid endpoints</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td>HTTP headers</td>
+        <td>Custom: <code>PAYMENT-REQUIRED</code>, <code>PAYMENT-SIGNATURE</code>, <code>PAYMENT-RESPONSE</code></td>
+        <td>Standard: <code>WWW-Authenticate: Payment</code>, <code>Authorization: Payment</code>, <code>Payment-Receipt</code></td>
+      </tr>
+      <tr>
+        <td>Replay protection</td>
+        <td>EIP-3009 nonces (blockchain-enforced) + time constraints</td>
+        <td>HMAC-bound challenge IDs + single-use credential semantics</td>
+      </tr>
+      <tr>
+        <td>Transaction safety</td>
+        <td>On-chain transaction simulation before settlement</td>
+        <td>Method-dependent (Tempo: ecrecover, Lightning: hash check, Stripe: API verification)</td>
+      </tr>
+      <tr>
+        <td>Trust model</td>
+        <td>Facilitator cannot move funds without valid client signature (EIP-3009)</td>
+        <td>Direct verification &mdash; no intermediary needed for most methods</td>
+      </tr>
+      <tr>
+        <td>Adoption</td>
+        <td>Established &mdash; 75M+ transactions, $24M+ volume, 94K+ buyers</td>
+        <td>New &mdash; early stage</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>What&rsquo;s Unique to Each</h3>
+
+  <div class="unique-grid">
+    <div class="unique-card x402">
+      <h4>Only in x402</h4>
+      <ul>
+        <li>Facilitator model (offloads blockchain interaction to a shared service &mdash; simpler server-side setup)</li>
+        <li>Bazaar extension (service discovery and paid endpoint catalogs)</li>
+        <li>SIWX extension (wallet-based auth to exempt returning users from payment)</li>
+        <li>Go SDK with Gin middleware</li>
+        <li>Browser paywall component for human-facing UIs</li>
+        <li>Multi-chain EVM + Solana with broad L1/L2 coverage</li>
+      </ul>
+    </div>
+    <div class="unique-card mpp">
+      <h4>Only in MPP</h4>
+      <ul>
+        <li>Payment-method agnostic (cards, Bitcoin Lightning, stablecoins, custom rails)</li>
+        <li>Session intent with real payment channels (off-chain vouchers, batch settlement)</li>
+        <li>SSE streaming payments with mid-stream voucher renewal</li>
+        <li>Permissionless extensibility (anyone can author new payment methods)</li>
+        <li>IETF standards track</li>
+        <li>Rust SDK</li>
+        <li>No facilitator dependency</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2 id="verdict">Claude's take on if MPP is better than x402</h2>
+  <p>It depends on what you&rsquo;re building.</p>
+
+  <div class="choose-grid">
+    <div class="choose-card mpp">
+      <h4>Choose MPP if:</h4>
+      <ul>
+        <li>You need to accept non-crypto payments (cards, wallets) alongside crypto</li>
+        <li>You&rsquo;re building metered/streaming services (LLM APIs, token streaming) where session-based billing matters</li>
+        <li>You want to support multiple payment rails and let clients choose</li>
+        <li>You care about IETF standardization</li>
+        <li>You need Rust support</li>
+      </ul>
+    </div>
+    <div class="choose-card x402">
+      <h4>Choose x402 if:</h4>
+      <ul>
+        <li>You&rsquo;re in the Coinbase/CDP ecosystem and want the simplest integration path</li>
+        <li>You only need USDC payments on EVM or Solana</li>
+        <li>You want the facilitator model to avoid handling blockchain interactions yourself</li>
+        <li>You need Go support</li>
+        <li>You want service discovery (Bazaar) or browser paywall components</li>
+        <li>You value the existing adoption and ecosystem</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bottom-text">
+    <p>
+      <strong>The big picture:</strong> MPP is more ambitious in scope &mdash; it&rsquo;s trying to be the universal payment layer for HTTP,
+      covering everything from credit cards to Bitcoin to stablecoins. x402 is more focused &mdash; it does crypto payments on EVM and Solana
+      really well with a clean facilitator abstraction.
+    </p>
+    <p>
+      MPP&rsquo;s session intent and streaming support are genuine differentiators if you&rsquo;re building high-frequency metered services.
+      x402&rsquo;s facilitator model and broader chain support are genuine differentiators if you&rsquo;re building in the crypto ecosystem.
+    </p>
+    <p>
+      They&rsquo;re solving the same fundamental problem (HTTP 402 for machine payments) but making different tradeoffs.
+      MPP optimizes for breadth of payment methods and streaming performance.
+      x402 optimizes for simplicity of integration and breadth of blockchain support.
+    </p>
+  </div>
+
+  <hr>
+
+  <h2 id="how-it-works">How Does MPP Work differently from x402?</h2>
+  <p>Both MPP and x402 follow the same high-level concept: request &rarr; 402 &rarr; pay &rarr; retry &rarr; get resource. But the mechanics differ in important ways.</p>
+
+  <h3>Headers: Standard vs Custom</h3>
+  <table>
+    <thead><tr><th></th><th>x402</th><th>MPP</th></tr></thead>
+    <tbody>
+      <tr><td>Challenge</td><td><code>PAYMENT-REQUIRED</code> (custom header, JSON body)</td><td><code>WWW-Authenticate: Payment</code> (standard RFC 9110 auth-params)</td></tr>
+      <tr><td>Credential</td><td><code>PAYMENT-SIGNATURE</code> (custom header)</td><td><code>Authorization: Payment</code> (standard HTTP auth header)</td></tr>
+      <tr><td>Receipt</td><td><code>PAYMENT-RESPONSE</code> (custom header)</td><td><code>Payment-Receipt</code> (custom header)</td></tr>
+    </tbody>
+  </table>
+  <p>MPP uses the standard HTTP authentication framework. x402 uses its own custom headers.</p>
+
+  <h3>Verification: Facilitator vs Direct</h3>
+  <p>This is the biggest architectural difference.</p>
+  <p>
+    In <strong>x402</strong>, the server doesn&rsquo;t verify payment itself. It forwards the signed payload to a <strong>facilitator</strong>
+    (Coinbase hosts one at <code>x402.org/facilitator</code>), which does two separate steps:
+  </p>
+  <ul>
+    <li><code>POST /verify</code> &mdash; validates the signature, checks balance, simulates the tx</li>
+    <li><code>POST /settle</code> &mdash; executes the payment on-chain after the server does its work</li>
+  </ul>
+  <p>In <strong>MPP</strong>, the server verifies payment <strong>directly</strong> using method-specific logic &mdash; no intermediary needed.</p>
+
+  <h3>When Does Money Actually Move?</h3>
+  <p>
+    In <strong>x402</strong>: The client signs an authorization (EIP-3009 <code>transferWithAuthorization</code>), but money doesn&rsquo;t move
+    until the facilitator calls <code>POST /settle</code> <em>after</em> the server has done its work. It&rsquo;s always a sign-then-settle model.
+  </p>
+  <p>In <strong>MPP</strong> it depends on the method:</p>
+  <ul>
+    <li><strong>Tempo pull</strong>: Similar to x402 &mdash; client signs, server broadcasts the tx</li>
+    <li><strong>Tempo push</strong>: Client sends the tx themselves, then presents the tx hash</li>
+    <li><strong>Stripe</strong>: Payment happens when the server creates the PaymentIntent</li>
+    <li><strong>Lightning</strong>: Client pays the invoice <em>before</em> retrying &mdash; the preimage revealed by the HTLC settlement <em>is</em> the credential</li>
+  </ul>
+
+  <h3>Challenge Format</h3>
+  <p>
+    x402 sends a JSON object with an <code>accepts</code> array &mdash; the client picks one <code>PaymentRequirement</code> from the list.
+  </p>
+  <p>
+    MPP sends auth-params in the <code>WWW-Authenticate</code> header and can include <strong>multiple headers</strong> for multiple payment options
+    (e.g., one for Tempo, one for Stripe).
+  </p>
+
+  <h3>Status Codes</h3>
+  <p>Both use <code>402</code> for the initial challenge. MPP additionally defines:</p>
+  <table>
+    <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>402</code></td><td>Payment barrier &mdash; initial challenge, or credential was invalid/expired/malformed. Always includes a fresh challenge.</td></tr>
+      <tr><td><code>200</code></td><td>Payment verified, resource granted. Includes receipt.</td></tr>
+      <tr><td><code>403</code></td><td>Payment verified, but policy denies access (e.g., geo-restriction).</td></tr>
+      <tr><td><code>401</code></td><td>Authentication failure unrelated to payment.</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h2 id="payment-methods">Payment Methods</h2>
+  <p>
+    MPP is <strong>payment-method agnostic</strong>. The core protocol doesn&rsquo;t care how money moves &mdash;
+    it only standardizes the challenge/credential/receipt exchange. Anyone can define a new payment method without needing approval from any foundation.
+  </p>
+
+  <h3>Built-in Methods</h3>
+  <table>
+    <thead><tr><th>Method</th><th>What It Is</th><th>Networks</th><th>Intents</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tempo</strong></td><td>Stablecoin payments on Tempo blockchain</td><td>Tempo mainnet/testnet</td><td>Charge, Session</td></tr>
+      <tr><td><strong>Stripe</strong></td><td>Card payments via Shared Payment Tokens</td><td>Traditional card networks</td><td>Charge</td></tr>
+      <tr><td><strong>Lightning</strong></td><td>Bitcoin over Lightning Network</td><td>Lightning (mainnet, signet, regtest)</td><td>Charge, Session</td></tr>
+      <tr><td><strong>Card</strong></td><td>Encrypted network tokens (Visa, Mastercard)</td><td>Card networks</td><td>Charge</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Tempo</strong> is the most fully-featured method &mdash; it supports both one-time charges and session-based streaming with ~500ms finality
+    and sub-cent fees. It has two transaction modes: <code>pull</code> (client signs, server broadcasts &mdash; enables gas fee sponsorship)
+    and <code>push</code> (client broadcasts directly).
+  </p>
+  <p>
+    <strong>Stripe</strong> uses Shared Payment Tokens (SPTs) &mdash; the client creates an SPT via Stripe&rsquo;s API representing their card/wallet,
+    sends it as the credential, and the server creates a PaymentIntent. Both sides need Stripe accounts.
+  </p>
+  <p>
+    <strong>Lightning</strong> uses BOLT11 invoices. For charges, the server generates an invoice, the client pays it, and the HTLC settlement reveals
+    a preimage that serves as the credential. Verification is a single local <code>sha256(preimage) == paymentHash</code> check.
+  </p>
+  <p>
+    <strong>Card</strong> uses encrypted network payment tokens (e.g., from Visa Intelligent Commerce). The server provides an RSA public key in the
+    challenge, and the client sends a JWE-encrypted token.
+  </p>
+
+  <h3>Custom Methods</h3>
+  <p>
+    Anyone can build a new payment method by defining a name, request/payload schemas (via Zod), a client <code>createCredential</code> function,
+    and a server <code>verify</code> function. No governance approval needed.
+  </p>
+
+  <hr>
+
+  <h2 id="cards-fiat">How Does MPP Support Cards / Fiat?</h2>
+  <p>MPP supports traditional card and fiat payments through two separate methods &mdash; <strong>Stripe</strong> and <strong>Card</strong> &mdash; each with a different architecture.</p>
+
+  <h3>Stripe Method</h3>
+  <p>
+    Uses <strong>Shared Payment Tokens (SPTs)</strong> &mdash; a Stripe feature that lets a client share a payment method with a server&rsquo;s
+    Stripe account without exposing actual card details.
+  </p>
+  <p><strong>Flow:</strong></p>
+  <ol>
+    <li>Server responds <code>402</code> with a challenge containing amount, currency, and Stripe details (Business Network profile, allowed payment method types)</li>
+    <li>Client collects a payment method (via Stripe Elements or a stored card), then calls Stripe&rsquo;s API to create an SPT with usage limits matching the challenge</li>
+    <li>Client sends the SPT as the credential</li>
+    <li>Server creates a Stripe <code>PaymentIntent</code> using the SPT and confirms it</li>
+    <li>Server returns the resource + receipt referencing the PaymentIntent ID</li>
+  </ol>
+  <p>Both client and server need Stripe accounts. SPT creation requires a Stripe secret key, so the client typically proxies this through a server endpoint.</p>
+
+  <h3>Card Method</h3>
+  <p>
+    Uses <strong>encrypted single-use network payment tokens</strong> from card networks directly (e.g., Visa Intelligent Commerce).
+    Unlike Stripe, the client and server can each use <strong>independent payment providers</strong> &mdash; no shared platform needed.
+  </p>
+  <p><strong>Flow:</strong></p>
+  <ol>
+    <li>Server responds <code>402</code> with a challenge containing amount, accepted card networks, and an RSA public key (<code>encryptionJwk</code>)</li>
+    <li>Client sends a card identifier to a credential issuer (e.g., Visa Intelligent Commerce)</li>
+    <li>Credential issuer provisions a network token + cryptogram, encrypts them as a JWE (RSA-OAEP-256 + AES-256-GCM) using the server&rsquo;s public key</li>
+    <li>Client sends the encrypted token as the credential</li>
+    <li>Server decrypts, charges through the card network via its own payment gateway</li>
+    <li>Returns resource + receipt</li>
+  </ol>
+
+  <h3>Stripe vs Card Method</h3>
+  <table>
+    <thead><tr><th></th><th>Stripe method</th><th>Card method</th></tr></thead>
+    <tbody>
+      <tr><td>How</td><td>Shared Payment Tokens &rarr; Stripe PaymentIntent</td><td>Encrypted network tokens (JWE) &rarr; card network authorization</td></tr>
+      <tr><td>Platform</td><td>Both sides need Stripe</td><td>Client and server use independent providers</td></tr>
+      <tr><td>Payment types</td><td>Cards, Apple Pay, Google Pay, Link, wallets</td><td>Card networks (Visa, Mastercard)</td></tr>
+      <tr><td>SDK</td><td>Built into <code>mppx</code></td><td>Separate package <code>mpp-card</code></td></tr>
+      <tr><td>Intent</td><td>Charge only</td><td>Charge only</td></tr>
+    </tbody>
+  </table>
+  <p>Neither card method supports sessions &mdash; fiat payments are one-shot charges only. Sessions are a Tempo and Lightning feature.</p>
+
+  <hr>
+
+  <h2 id="intents">Payment Intents: Charge vs Session</h2>
+
+  <h3>Charge Intent &mdash; One-Time Payment</h3>
+  <p>One request, one payment, one receipt. The cost is known upfront.</p>
+  <p>Best for: per-call API endpoints, content access, tool invocations.</p>
+
+  <h3>Session Intent &mdash; Pay-as-You-Go Streaming</h3>
+  <p>This is where MPP gets interesting. Instead of paying per-request on-chain, the client opens a <strong>payment channel</strong>:</p>
+  <ol>
+    <li><strong>Open</strong>: Client deposits funds into an on-chain escrow contract</li>
+    <li><strong>Use</strong>: For each request, the client signs an off-chain EIP-712 voucher saying &ldquo;I&rsquo;ve now consumed up to X total&rdquo;</li>
+    <li><strong>Settle</strong>: The server periodically settles accumulated vouchers on-chain in batches</li>
+    <li><strong>Close</strong>: Remaining balance is refunded to the client</li>
+  </ol>
+  <p>
+    Verification is just an <code>ecrecover</code> call &mdash; <strong>microseconds, no RPC calls, no database lookups</strong>.
+    The bottleneck becomes CPU, not blockchain TPS.
+  </p>
+  <p>This gives you:</p>
+  <ul>
+    <li>Sub-100ms per-request latency</li>
+    <li>Near-zero per-request fees</li>
+    <li>Thousands of requests on a single deposit</li>
+  </ul>
+
+  <h3>SSE Streaming with Mid-Stream Voucher Renewal</h3>
+  <p>
+    MPP natively supports per-token billing over Server-Sent Events. If the channel balance runs low mid-stream,
+    the server emits a <code>payment-need-voucher</code> event and pauses. The client automatically signs a new voucher and sends it.
+    The stream resumes on the same connection &mdash; no replay, no interruption.
+  </p>
+  <p>This is purpose-built for LLM token streaming, metered APIs, and content aggregation.</p>
+
+  <hr>
+
+  <h2 id="sdks">SDKs and Framework Support</h2>
+
+  <h3>TypeScript (<code>mppx</code>) &mdash; Primary SDK by wevm</h3>
+  <ul>
+    <li><strong>Server middleware</strong>: Next.js, Hono, Elysia, Express</li>
+    <li><strong>Also works with</strong>: Bun, Deno, Cloudflare Workers, any Fetch API-compatible runtime</li>
+    <li><strong>Client</strong>: Wraps <code>fetch</code> with automatic 402 handling</li>
+    <li><strong>CLI</strong>: <code>npx mppx &lt;url&gt;</code> to test paid endpoints, <code>mppx account create</code> for wallet setup</li>
+  </ul>
+
+  <h3>Python (<code>pympp</code>)</h3>
+  <ul>
+    <li><strong>Server</strong>: FastAPI integration</li>
+    <li><strong>Client</strong>: Wraps <code>httpx</code> with automatic 402 interception</li>
+    <li>Python 3.10+</li>
+  </ul>
+
+  <h3>Rust (<code>mpp</code>)</h3>
+  <ul>
+    <li><strong>Client</strong>: <code>Fetch</code> extension trait on reqwest</li>
+    <li><strong>Server</strong>: <code>ChargeMethod</code> trait</li>
+    <li>Rust 1.75+, feature flags for <code>client</code>, <code>server</code>, <code>evm</code>, <code>tempo</code></li>
+  </ul>
+
+  <h3>MCP (Model Context Protocol) Transport</h3>
+  <p>MPP maps natively onto MCP&rsquo;s JSON-RPC layer for AI agent tool calls:</p>
+  <table>
+    <thead><tr><th>MPP Concept</th><th>MCP Encoding</th></tr></thead>
+    <tbody>
+      <tr><td>Challenge</td><td>JSON-RPC error code <code>-32042</code> with <code>data.challenges</code> array</td></tr>
+      <tr><td>Credential</td><td><code>params._meta["org.paymentauth/credential"]</code> in tool call</td></tr>
+      <tr><td>Receipt</td><td><code>result._meta["org.paymentauth/receipt"]</code> in response</td></tr>
+    </tbody>
+  </table>
+  <p>This lets MCP servers monetize tool calls and AI agents pay autonomously.</p>
+
+  <hr>
+
+  <h2 id="security">Security Model</h2>
+  <ul class="security-list">
+    <li><strong>TLS 1.2+ required</strong> for all payment flows (1.3 preferred)</li>
+    <li><strong>Challenge binding</strong>: Challenge IDs are HMAC-bound to all parameters &mdash; prevents tampering with payment terms</li>
+    <li><strong>Single-use credentials</strong>: Each credential works exactly once &mdash; no replay attacks</li>
+    <li><strong>Request body binding</strong>: For POST/PUT/PATCH, an optional <code>digest</code> parameter (RFC 9530) binds the challenge to the request body, preventing modification after challenge issuance</li>
+    <li><strong>Idempotency</strong>: <code>Idempotency-Key</code> header supported for safe retries. Servers must not perform side effects on unpaid requests</li>
+    <li><strong>Credential secrecy</strong>: Credentials are bearer tokens &mdash; must not be logged, cached, or included in error messages</li>
+    <li><strong>Auth ordering</strong>: When both auth and payment are required, verify auth first (401), then issue payment challenge (402) &mdash; prevents leaking payment requirements to unauthenticated clients</li>
+    <li><strong>Error handling</strong>: RFC 9457 Problem Details with seven specific error codes (<code>payment-required</code>, <code>payment-insufficient</code>, <code>payment-expired</code>, <code>verification-failed</code>, <code>method-unsupported</code>, <code>malformed-credential</code>, <code>invalid-challenge</code>)</li>
+  </ul>
+
+  <hr>
+
+  <h2 id="discovery">Discovery: How Do You Find MPP Services?</h2>
+  <p>MPP and x402 take different approaches to service discovery.</p>
+
+  <h3>x402: Bazaar (Live Service Directory)</h3>
+  <p>
+    x402 has <strong>Bazaar</strong> &mdash; a working service discovery system. Resource servers advertise their paid endpoints in the 402 response
+    via a <code>bazaar</code> extension, and facilitators index them into searchable catalogs. It&rsquo;s a live directory of paid APIs you can
+    browse and connect to today.
+  </p>
+
+  <h3>MPP: OpenAPI Discovery (Spec-Level, No Live Registry Yet)</h3>
+  <p>
+    MPP&rsquo;s approach to discovery is defined in a
+    <a href="https://paymentauth.org/draft-payment-discovery-00">formal specification</a> but works differently from Bazaar.
+    Instead of a centralized directory, each service publishes an <strong>OpenAPI document</strong> at <code>/openapi.json</code>
+    that describes its payment capabilities.
+  </p>
+
+  <p><strong>What the OpenAPI document contains:</strong></p>
+  <p>Each payable endpoint includes an <code>x-payment-info</code> extension with:</p>
+  <table>
+    <thead><tr><th>Field</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>intent</code></td><td><code>"charge"</code> (per-request) or <code>"session"</code> (pay-as-you-go)</td></tr>
+      <tr><td><code>method</code></td><td>Payment method identifier (e.g., <code>"tempo"</code>, <code>"stripe"</code>)</td></tr>
+      <tr><td><code>amount</code></td><td>Cost in smallest denomination (e.g., cents), or <code>null</code> for dynamic pricing</td></tr>
+      <tr><td><code>currency</code></td><td>ISO 4217 code (fiat) or token contract address (blockchain)</td></tr>
+      <tr><td><code>description</code></td><td>Human-readable pricing note</td></tr>
+    </tbody>
+  </table>
+  <p>Services can also include an <code>x-service-info</code> extension with categories and documentation links.</p>
+  <p>
+    <strong>Important</strong>: Discovery is advisory only. The runtime 402 challenge is always authoritative &mdash; if the OpenAPI doc says
+    one price and the 402 response says another, the 402 wins.
+  </p>
+
+  <h3>Registries and Aggregators (Spec&rsquo;d but Not Built Yet)</h3>
+  <p>The spec defines two additional layers that don&rsquo;t exist yet in practice:</p>
+  <ul>
+    <li><strong>Registries</strong>: Crawl OpenAPI documents from submitted domains, validate the payment extensions, and index services into
+    searchable catalogs. Re-crawl every 24+ hours, delist after 7+ consecutive failures. Domain ownership is proven by serving a valid OpenAPI doc
+    with <code>x-payment-info</code> over HTTPS.</li>
+    <li><strong>Aggregators</strong>: Consume registry data and add curation, trust scores, uptime metrics, or reshape it into agent-native formats.
+    Can federate across multiple registries.</li>
+  </ul>
+
+  <h3>MPP Proxy Discovery Endpoints</h3>
+  <p>The <code>mppx</code> proxy SDK does have built-in discovery for services routed through it:</p>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /discover</code></td><td>Lists all proxied services (JSON or markdown for AI agents)</td></tr>
+      <tr><td><code>GET /discover/{id}</code></td><td>Details for a single service, including routes and pricing</td></tr>
+      <tr><td><code>GET /discover/all</code></td><td>All services with full route details</td></tr>
+      <tr><td><code>GET /llms.txt</code></td><td><code>llms.txt</code>-formatted overview of the proxy and its services</td></tr>
+    </tbody>
+  </table>
+  <p>This is useful for agents interacting with a specific proxy, but it&rsquo;s not a network-wide registry.</p>
+
+  <h3>The Bottom Line on Discovery</h3>
+  <p>
+    MPP has discovery of <strong>payment methods and pricing</strong> per service (via OpenAPI), and specs out registries that <strong>would</strong>
+    mirror Bazaar &mdash; but there&rsquo;s no live registry implementation yet. x402&rsquo;s Bazaar is ahead here with a working directory today.
+    MPP&rsquo;s <a href="https://mpp.dev">mpp.dev</a> site is documentation, not a service catalog.
+  </p>
+
+
+  </main>
+</div>
+
+<script>
+  // Scroll spy: highlight the active sidebar link
+  const sections = document.querySelectorAll('h2[id]');
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        const active = document.querySelector(`.sidebar nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(section => observer.observe(section));
+
+  // Smooth scroll
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+      // Close mobile sidebar
+      document.querySelector('.sidebar').classList.remove('open');
+    });
+  });
+</script>
+
+</body>
+</html>

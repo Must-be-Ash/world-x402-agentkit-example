@@ -83,6 +83,15 @@ Three access modes out of the box:
 
 Usage is tracked per **human**, not per wallet. One person with 100 wallets still gets only 3 free calls — World ID biometric proof ties every wallet back to a single identity.
 
+### What you see as a provider
+
+Every verified request gives you two things:
+
+- **Wallet address** — which specific agent made the request
+- **Anonymous human ID** — which human is behind it (a one-way hash, not their real identity)
+
+One human = one `humanId`, no matter how many agents they register. All 1,000 of their agents resolve to the same ID. You can tell "these agents belong to the same person" without knowing *who* that person is — that's the privacy guarantee from World ID.
+
 ## Stack
 
 - [x402](https://x402.org) — HTTP 402 payment protocol
